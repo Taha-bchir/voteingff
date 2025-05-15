@@ -7,7 +7,7 @@ import { Starfield } from "@/components/ui/starfield"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { CalendarClock, Users, Loader2, ArrowLeft } from "lucide-react"
+import { CalendarClock, Users, Loader2, ArrowLeft, RefreshCw } from "lucide-react"
 import { useApi } from "@/services/api"
 import { useWallet } from "@/context/wallet-context"
 import { useToast } from "@/hooks/use-toast"
@@ -36,6 +36,7 @@ export default function PollDetailPage() {
   const { id } = params
   const [poll, setPoll] = useState<Poll | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [votingOption, setVotingOption] = useState<number | null>(null)
   const [isVoting, setIsVoting] = useState(false)
@@ -76,7 +77,13 @@ export default function PollDetailPage() {
       })
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
+  }
+
+  const refreshPoll = () => {
+    setRefreshing(true)
+    fetchPoll()
   }
 
   const handleVote = async (optionIndex: number) => {
@@ -117,8 +124,29 @@ export default function PollDetailPage() {
           ),
         })
 
-        // Refresh poll data
-        fetchPoll()
+        // Immediately update the local poll data to reflect the new vote
+        if (poll) {
+          const updatedPoll = { ...poll }
+
+          // Increment the vote count for the selected option
+          if (updatedPoll.options[optionIndex]) {
+            updatedPoll.options[optionIndex].votes += 1
+          }
+
+          // Increment total votes
+          updatedPoll.totalVotes += 1
+
+          // Mark that the user has voted
+          updatedPoll.userVote = optionIndex
+
+          // Update the poll state
+          setPoll(updatedPoll)
+
+          // Also refresh from the server to ensure data consistency
+          setTimeout(() => {
+            fetchPoll()
+          }, 1000)
+        }
       } else {
         toast({
           title: "Error submitting vote",
@@ -128,11 +156,24 @@ export default function PollDetailPage() {
       }
     } catch (err: any) {
       console.error("Vote error:", err)
-      toast({
-        title: "Error submitting vote",
-        description: err.message || "Please try again later",
-        variant: "destructive",
-      })
+
+      // Check if the error is because the user has already voted
+      if (err.message && err.message.includes("already voted")) {
+        toast({
+          title: "Already Voted",
+          description: "You have already cast a vote in this poll",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Error submitting vote",
+          description: err.message || "Please try again later",
+          variant: "destructive",
+        })
+      }
+
+      // Refresh the poll to get the latest data
+      fetchPoll()
     } finally {
       setIsVoting(false)
       setVotingOption(null)
@@ -197,10 +238,22 @@ export default function PollDetailPage() {
       <Navbar />
 
       <div className="container mx-auto px-4 pt-24 pb-12">
-        <Button variant="outline" className="mb-6" onClick={() => router.push("/polls")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Polls
-        </Button>
+        <div className="flex justify-between items-center mb-6">
+          <Button variant="outline" onClick={() => router.push("/polls")}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Polls
+          </Button>
+
+          <Button
+            variant="outline"
+            onClick={refreshPoll}
+            disabled={refreshing}
+            className="text-primary border-primary hover:bg-primary/10"
+          >
+            {refreshing ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+            Refresh
+          </Button>
+        </div>
 
         <Card className="max-w-4xl mx-auto glassmorphism">
           <CardHeader className="pb-2">

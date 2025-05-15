@@ -71,36 +71,22 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
         // Check if already connected
         if (solana.isConnected && solana.publicKey) {
           const address = solana.publicKey.toString()
+          setWalletAddress(address)
 
-          // If the wallet address has changed, update it
-          if (walletAddress !== address) {
-            setWalletAddress(address)
-
-            // Clear previous authentication if wallet changed
-            if (walletAddress && walletAddress !== address) {
-              setToken(null)
-              setIsAdmin(false)
-              localStorage.removeItem("votechain_token")
-              localStorage.removeItem("votechain_wallet")
-              localStorage.removeItem("votechain_is_admin")
-            }
-
-            // If we have an address but no token, try to authenticate
-            if (!token) {
-              try {
-                await authenticateWallet(solana, address)
-              } catch (error) {
-                console.error("Failed to authenticate wallet:", error)
-              }
+          // If we have an address but no token, try to authenticate
+          if (!token) {
+            try {
+              await authenticateWallet(solana, address)
+            } catch (error) {
+              console.error("Failed to authenticate wallet:", error)
             }
           }
         }
 
         // Listen for connection events
-        solana.on("connect", async (publicKey: any) => {
-          const address = publicKey.toString()
+        solana.on("connect", async () => {
+          const address = solana.publicKey.toString()
           setWalletAddress(address)
-          setConnecting(false)
 
           try {
             await authenticateWallet(solana, address)
@@ -119,38 +105,6 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
           localStorage.removeItem("votechain_wallet")
           localStorage.removeItem("votechain_is_admin")
         })
-
-        // Listen for account change events
-        solana.on("accountChanged", async (publicKey: any) => {
-          if (publicKey) {
-            const newAddress = publicKey.toString()
-
-            // If the wallet address has changed, update authentication
-            if (walletAddress !== newAddress) {
-              setWalletAddress(newAddress)
-              setToken(null)
-              setIsAdmin(false)
-              localStorage.removeItem("votechain_token")
-              localStorage.removeItem("votechain_wallet")
-              localStorage.removeItem("votechain_is_admin")
-
-              try {
-                await authenticateWallet(solana, newAddress)
-              } catch (error) {
-                console.error("Failed to authenticate new wallet:", error)
-              }
-            }
-          } else {
-            // No public key means disconnected
-            setConnected(false)
-            setWalletAddress(null)
-            setIsAdmin(false)
-            setToken(null)
-            localStorage.removeItem("votechain_token")
-            localStorage.removeItem("votechain_wallet")
-            localStorage.removeItem("votechain_is_admin")
-          }
-        })
       }
     }
 
@@ -161,14 +115,8 @@ export const WalletProvider = ({ children }: { children: ReactNode }) => {
 
     return () => {
       // Cleanup listeners if needed
-      const solana = (window as any).solana
-      if (solana?.isPhantom) {
-        solana.removeAllListeners("connect")
-        solana.removeAllListeners("disconnect")
-        solana.removeAllListeners("accountChanged")
-      }
     }
-  }, [walletAddress, token])
+  }, [token])
 
   const authenticateWallet = async (wallet: PhantomWallet, address: string) => {
     try {

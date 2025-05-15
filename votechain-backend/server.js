@@ -28,6 +28,8 @@ app.use("/api/auth", authRoutes)
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack)
+
+  // Format the error response
   res.status(err.statusCode || 500).json({
     success: false,
     message: err.message || "Server Error",

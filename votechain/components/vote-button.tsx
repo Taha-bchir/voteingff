@@ -4,17 +4,20 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useWallet } from "@/context/wallet-context"
 import { useToast } from "@/hooks/use-toast"
+import { useApi } from "@/services/api"
 
 interface VoteButtonProps {
   pollId: string
-  optionId: string
+  optionIndex: number
   disabled?: boolean
+  onVoteSuccess?: () => void
 }
 
-export function VoteButton({ pollId, optionId, disabled = false }: VoteButtonProps) {
+export function VoteButton({ pollId, optionIndex, disabled = false, onVoteSuccess }: VoteButtonProps) {
   const [isVoting, setIsVoting] = useState(false)
   const { connected, walletAddress } = useWallet()
   const { toast } = useToast()
+  const api = useApi()
 
   const handleVote = async () => {
     if (!connected || !walletAddress) {
@@ -29,33 +32,33 @@ export function VoteButton({ pollId, optionId, disabled = false }: VoteButtonPro
     setIsVoting(true)
 
     try {
-      // Simulate API call to vote
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-
-      // Simulate transaction hash
-      const txHash = Array.from({ length: 64 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("")
+      const result = await api.votes.cast(pollId, optionIndex)
 
       toast({
         title: "Vote submitted!",
         description: (
           <div className="mt-2">
             <p className="text-xs text-muted-foreground mb-1">Transaction Hash:</p>
-            <p className="text-xs font-mono bg-secondary p-1 rounded overflow-x-auto">{txHash}</p>
+            <p className="text-xs font-mono bg-secondary p-1 rounded overflow-x-auto">{result.data.txHash}</p>
           </div>
         ),
       })
 
-      // Reload the page to reflect the new vote
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000)
-    } catch (error) {
-      toast({
-        title: "Error submitting vote",
-        description: "Please try again later",
-        variant: "destructive",
-      })
-    } finally {
+      onVoteSuccess?.()
+    } catch (error: any) {
+  // Try to get the error message from backend response JSON
+  const message =
+    error?.response?.data?.error ||  // <-- This is the backend error string, e.g. "You have already voted in this poll"
+    error?.message ||               // fallback to error.message
+    "Please try again later"        // fallback default
+
+  toast({
+    title: "Error submitting vote",
+    description: message,
+    variant: "destructive",
+  })
+}
+finally {
       setIsVoting(false)
     }
   }

@@ -8,7 +8,7 @@ const router = express.Router()
 router.use(protect)
 
 // User routes
-router.post("/votes", protect, castVote)
+router.post("/", protect, castVote)
 router.get("/history", getUserVotes)
 
 // Admin routes

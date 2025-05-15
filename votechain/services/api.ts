@@ -7,8 +7,9 @@ async function handleResponse(response: Response) {
   const data = await response.json()
 
   if (!response.ok) {
-    const error = (data && data.message) || response.statusText
-    return Promise.reject(error)
+    // Extract the error message from the response
+    const errorMessage = data.message || response.statusText
+    throw new Error(errorMessage)
   }
 
   return data

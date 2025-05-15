@@ -41,10 +41,9 @@ exports.castVote = async (req, res, next) => {
       voterWallet: req.walletAddress,
     })
 
-if (err.code === 11000 && err.keyPattern && err.keyPattern.pollId && err.keyPattern.voterWallet) {
-  return next(new ErrorResponse("You have already voted in this poll", 400))
-}
-
+    if (existingVote) {
+      return next(new ErrorResponse("You have already voted in this poll", 400))
+    }
 
     // Generate a fake transaction hash for the demo
     const txHash = Array.from({ length: 64 }, () => "0123456789abcdef"[Math.floor(Math.random() * 16)]).join("")
