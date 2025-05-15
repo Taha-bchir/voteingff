@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 180 100% 97%;
+    --foreground: 180 10% 3.9%;
+    --card: 180 100% 97%;
+    --card-foreground: 180 10% 3.9%;
+    --popover: 180 100% 97%;
+    --popover-foreground: 180 10% 3.9%;
+    --primary: 170 80% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 180 5% 96%;
+    --secondary-foreground: 180 5.9% 10%;
+    --muted: 180 5% 96%;
+    --muted-foreground: 180 3.8% 46.1%;
+    --accent: 170 80% 40%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 180 5.9% 90%;
+    --input: 180 5.9% 90%;
+    --ring: 170 80% 40%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 170 50% 10%;
+    --foreground: 0 0% 98%;
+    --card: 170 50% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 170 50% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 170 80% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 170 30% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 170 30% 15.9%;
+    --muted-foreground: 180 5% 64.9%;
+    --accent: 170 80% 40%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 170 30% 18%;
+    --input: 170 30% 18%;
+    --ring: 170 80% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+.glassmorphism {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.dark .glassmorphism {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.neon-border {
+  box-shadow: 0 0 5px theme("colors.primary.DEFAULT"), 0 0 10px theme("colors.primary.DEFAULT");
+}
+
+.neon-text {
+  text-shadow: 0 0 5px theme("colors.primary.DEFAULT"), 0 0 10px theme("colors.primary.DEFAULT");
+}
+
+.accent-border {
+  box-shadow: 0 0 5px theme("colors.accent.DEFAULT"), 0 0 10px theme("colors.accent.DEFAULT");
+}
+
+.accent-text {
+  text-shadow: 0 0 5px theme("colors.accent.DEFAULT"), 0 0 10px theme("colors.accent.DEFAULT");
+}
